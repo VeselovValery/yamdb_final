@@ -46,7 +46,7 @@ jobs:
         uses: actions/checkout@v2 
       - name: Set up Docker Buildx
         # Вызов сборщика контейнеров docker
-        uses: docker/setup-buildx-action@v1 
+        uses: docker/setup-buildx-action@v1
       - name: Login to Docker 
         # Запуск скрипта авторизации на Docker Hub
         uses: docker/login-action@v1 
@@ -57,12 +57,14 @@ jobs:
         # Пуш образа в Docker Hub 
         uses: docker/build-push-action@v2 
         with:
+          context: ./api_yamdb
           push: true
           tags: manik86/api_yamdb:latest
        
   deploy:
     runs-on: ubuntu-latest
     needs: build_and_push_to_docker_hub
+    if: github.ref == 'refs/heads/master'
     steps:
       - name: executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
@@ -74,6 +76,7 @@ jobs:
           script: |
             sudo docker-compose stop
             sudo docker-compose rm web
+            sudo docker pull manik86/api_yamdb:latest
             touch .env
             echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
             echo DB_NAME=${{ secrets.DB_NAME }} >> .env
